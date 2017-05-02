@@ -1,0 +1,6 @@
+show notes: run python notesLib.py show
+delete notes: run python notesLib.py delete
+delete note $id: run python notesLib.py delete $id
+clear: run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo
+show note $id: run python notesLib.py show $id
+add note $text: run python notesLib.py add $text
