@@ -4,7 +4,7 @@ print "Welcome to PANTEL - a Python based virtual assistant"
 if not os.path.isdir('data'):
 	os.mkdir('data')
 if not os.path.isdir('data/libraries'):
-	os.mkdir('data/libraries')	 
+	os.mkdir('data/libraries')
 def save(filename, data):
 	fw = open('data/{}.data'.format(filename),'w')
 	for l in data:
@@ -54,7 +54,7 @@ def process_custom_command(command):
 		scmd = cmd.split(' ')
 		if cmd not in database['commands']:
 			for arg in scmd:
-				if arg[0] == '$':
+				if arg[0] == '$' or (arg[0] == '{' and arg[len(arg)-1] == '}'):
 					if arg in arguments:
 						scmd[scmd.index(arg)] = arguments[arg]
 					else:
@@ -129,4 +129,15 @@ while run:
 		for word in command:
 			if word[0] == '$':
 				arguments[word] = raw_input('{}='.format(word))
+			elif word[0] == '{' and word[len(word)-1] == '}':
+				print '{} :'.format(word)
+				tryRun = True
+				lines = []
+				while tryRun:
+					nextline = raw_input('')
+					if nextline is '':
+						tryRun = False
+					else:
+						lines.append(nextline)
+					arguments[word] = '{}'.format(';'.join(lines))
 		execute([command])
