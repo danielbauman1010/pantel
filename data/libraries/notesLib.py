@@ -19,6 +19,7 @@ def load(filename):
 		return data
 	else:
 		return {}
+
 if not os.path.isdir('.notes'):
     os.makedirs('.notes')
 notes = load('.notes/notes.list')
@@ -49,3 +50,11 @@ elif sys.argv[1] == 'delete':
         else:
             print 'Note doesn\'t exist.'
     save('.notes/notes.list',notes)
+elif sys.argv[1] == 'install':
+	currcommands = load('../commands.data')
+	currcommands['add note $text'] = 'run python libraries/notesLib.py add $text'
+	currcommands['show notes'] = 'run python libraries/notesLib.py show'
+	currcommands['delete notes'] = 'run python libraries/notesLib.py delete'
+	currcommands['show note $id'] = 'run python libraries/notesLib.py show $id'
+	currcommands['delete note $id'] = 'run python libraries/notesLib.py delete $id'
+	save('../commands.data',currcommands)

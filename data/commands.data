@@ -1,6 +1,12 @@
+show file $name: run cat $name
 show notes: run python notesLib.py show
 delete notes: run python notesLib.py delete
 delete note $id: run python notesLib.py delete $id
+add $text to $name: run echo $text >> $name
 clear: run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo
 show note $id: run python notesLib.py show $id
+create file $name: run touch $name
+write $text to $name: run echo $text > $name
 add note $text: run python notesLib.py add $text
+make folder $name: run mkdir $name
+make sure to note $text: add note $text;show notes
