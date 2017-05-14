@@ -119,20 +119,18 @@ def execute(commands):
 		else:
 			print 'unforseen-failure.'
 			run = 0
-
-run = 1
-while run:
-	command = raw_input('>>>').split(' ')
+if len(sys.argv)>1:
+	command = sys.argv[1:]
+	for i in command:
+		if i[0] == '*':
+			command[command.index(i)] = '${}'.format(i[1:])
 	arguments = {}
+	print command
 	if (len(command)==0) or (not (command[0] in interface) and not (' '.join(command) in database['commands'])):
 		print '{} is an invalid command.'.format(' '.join(command))
 		print 'A command must start with: '
 		print interface
 		print database['commands']
-	elif command[0] == 'quit' or command[0] == 'exit':
-		for f in database:
-			save(f, database[f])
-		run = 0
 	else:
 		for word in command:
 			if word[0] == '$':
@@ -149,3 +147,37 @@ while run:
 						lines.append(nextline)
 					arguments[word] = '{}'.format(';'.join(lines))
 		execute([command])
+	for f in database:
+		save(f, database[f])
+else:
+	run = 1
+	print "Welcome to PANTEL - a Python based virtual assistant"
+	print 'Welcome back, {}'.format(database['user_preferences']['name'])
+	while run:
+		command = raw_input('>>>').split(' ')
+		arguments = {}
+		if (len(command)==0) or (not (command[0] in interface) and not (' '.join(command) in database['commands'])):
+			print '{} is an invalid command.'.format(' '.join(command))
+			print 'A command must start with: '
+			print interface
+			print database['commands']
+		elif command[0] == 'quit' or command[0] == 'exit':
+			for f in database:
+				save(f, database[f])
+			run = 0
+		else:
+			for word in command:
+				if word[0] == '$':
+					arguments[word] = raw_input('{}='.format(word))
+				elif word[0] == '{' and word[len(word)-1] == '}':
+					print '{} :'.format(word)
+					tryRun = True
+					lines = []
+					while tryRun:
+						nextline = raw_input('')
+						if nextline is '':
+							tryRun = False
+						else:
+							lines.append(nextline)
+						arguments[word] = '{}'.format(';'.join(lines))
+			execute([command])
