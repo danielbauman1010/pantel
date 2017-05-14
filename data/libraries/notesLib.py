@@ -52,10 +52,10 @@ elif sys.argv[1] == 'delete':
     save('.notes/notes.list',notes)
 elif sys.argv[1] == 'install':
 	currcommands = load('../commands.data')
-	currcommands['add note $text'] = 'run python data/libraries/notesLib.py add $text'
+	currcommands['add $note'] = 'run python data/libraries/notesLib.py add $note'
 	currcommands['show notes'] = 'run python data/libraries/notesLib.py show'
 	currcommands['delete notes'] = 'run python data/libraries/notesLib.py delete'
-	currcommands['show note $id'] = 'run python data/libraries/notesLib.py show $id'
-	currcommands['delete note $id'] = 'run python data/libraries/notesLib.py delete $id'
-	currcommands['add note {text}'] = 'run python data/libraries/notesLib.py add {text}'
+	currcommands['show $note'] = 'run python data/libraries/notesLib.py show $note'
+	currcommands['delete $note'] = 'run python data/libraries/notesLib.py delete $note'
+	currcommands['add {note}'] = 'run python data/libraries/notesLib.py add {note}'
 	save('../commands.data',currcommands)

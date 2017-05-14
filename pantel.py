@@ -20,7 +20,7 @@ def load(filename):
 			rawl = ''.join(rawl.split('\n'))
 			l = rawl.split(': ')
 			if len(l)>1:
-				data[l[0]] = l[1]
+				data[l[0]] = ': '.join(l[1:])
 		return data
 	else:
 		return {}
@@ -37,7 +37,7 @@ database = {}
 database['user_preferences'] = load('user_preferences')
 database['commands'] = load('commands')
 configure()
-interface = ['add','delete','create','show','quit','exit', 'remove','what\'s', 'execute', 'run']
+interface = ['add','delete','create','show','quit','exit', 'remove','what\'s', 'execute', 'run', 'read', 'save']
 
 def runcmd(cmd):
 	return subprocess.check_output(cmd)
@@ -66,7 +66,7 @@ def execute(commands):
 	for command in commands:
 		if ' '.join(command) in database['commands']:
 			execute(process_custom_command(' '.join(command)))
-		elif command[0] == 'add' or command[0] == 'create':
+		elif command[0] == 'add' or command[0] == 'create' or command[0] == 'save':
 			if len(command)<2:
 				print 'add what?'
 			else:
@@ -82,14 +82,22 @@ def execute(commands):
 						else:
 							commandsList.append(anotherCommand)
 					database['commands'][newCommand] = ';'.join(commandsList)
-		elif command[0] == 'show' or command[0] == 'what\'s':
+				elif command[1] == 'to':
+					if len(command)<4:
+						print 'save what to where?'
+					else:
+						if command[2] == 'database':
+							database[' '.join(command[3:])] = {}
+						elif ' '.join(' '.join(command).split(':')[0].split(' ')[2:]) in database:
+							database[' '.join(' '.join(command).split(':')[0].split(' ')[2:])][' '.join(command).split(':')[1].split('=')[0]] = ' '.join(command).split(':')[1].split('=')[1]
+		elif command[0] == 'show' or command[0] == 'what\'s' or command[0] == 'read':
 			if len(command)<2:
 				print 'show what?'
 			else:
 				if command[1] == 'database':
 					pretty_print(database)
-				elif command[1] in database:
-					pretty_print(database[command[1]])
+				elif ' '.join(command[1:]) in database:
+					pretty_print(database[' '.join(command[1:])])
 				else:
 					print '{} does not exist in my database.'.format(command[1])
 		elif command[0] == 'delete':

@@ -1,7 +1,0 @@
-show notes: run python data/libraries/notesLib.py show
-delete notes: run python data/libraries/notesLib.py delete
-delete note $id: run python data/libraries/notesLib.py delete $id
-clear: run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo;run echo
-show note $id: run python data/libraries/notesLib.py show $id
-add note $text: run python data/libraries/notesLib.py add $text
-add note {text}: run python data/libraries/notesLib.py add {text}
