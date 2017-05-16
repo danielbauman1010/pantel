@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 print "Welcome to PANTEL - a Python based virtual assistant"
 if not os.path.isdir('data'):
 	os.mkdir('data')
@@ -125,7 +126,6 @@ if len(sys.argv)>1:
 		if i[0] == '*':
 			command[command.index(i)] = '${}'.format(i[1:])
 	arguments = {}
-	print command
 	if (len(command)==0) or (not (command[0] in interface) and not (' '.join(command) in database['commands'])):
 		print '{} is an invalid command.'.format(' '.join(command))
 		print 'A command must start with: '
