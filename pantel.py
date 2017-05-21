@@ -1,7 +1,6 @@
 import os
 import subprocess
 import sys
-print "Welcome to PANTEL - a Python based virtual assistant"
 if not os.path.isdir('data'):
 	os.mkdir('data')
 if not os.path.isdir('data/libraries'):
@@ -26,9 +25,7 @@ def load(filename):
 	else:
 		return {}
 def configure():
-	if 'name' in database['user_preferences']:
-		print 'Welcome back, {}'.format(database['user_preferences']['name'])
-	else:
+	if 'name' not in database['user_preferences']:
 		name = raw_input('How should I call you?\t')
 		print 'OK, welcome {}'.format(name)
 		database['user_preferences']['name'] = name
@@ -53,7 +50,15 @@ def process_custom_command(command):
 	commands = []
 	for cmd in database['commands'][command].split(';'):
 		scmd = cmd.split(' ')
-		if cmd not in database['commands']:
+		scommand = ' '.join(scmd).split(' %')
+		if len(scommand) > 1:
+			scmd = scommand[0].split(' ')
+			args = ' %'.join(scommand[1:]).split(' $')
+			for arg in args:
+				if arg is not '':
+					sarg = arg.split(' = ')
+					arguments['${}'.format(sarg[0])] = ' = '.join(sarg[1:])
+		if ' '.join(scmd) not in database['commands']:
 			for arg in scmd:
 				if arg[0] == '$' or (arg[0] == '{' and arg[len(arg)-1] == '}'):
 					if arg in arguments:
@@ -65,6 +70,14 @@ def process_custom_command(command):
 
 def execute(commands):
 	for command in commands:
+		scommand = ' '.join(command).split(' %')
+		if len(scommand) > 1:
+			command = scommand[0].split(' ')
+			args = ' %'.join(scommand[1:]).split(' $')
+			for arg in args:
+				if arg is not '':
+					sarg = arg.split(' = ')
+					arguments['${}'.format(sarg[0])] = ' = '.join(sarg[1:])
 		if ' '.join(command) in database['commands']:
 			execute(process_custom_command(' '.join(command)))
 		elif command[0] == 'add' or command[0] == 'create' or command[0] == 'save':
@@ -126,6 +139,14 @@ if len(sys.argv)>1:
 		if i[0] == '*':
 			command[command.index(i)] = '${}'.format(i[1:])
 	arguments = {}
+	scommand = ' '.join(command).split(' %')
+	if len(scommand) > 1:
+		command = scommand[0].split(' ')
+		args = ' %'.join(scommand[1:]).split(' $')
+		for arg in args:
+			if arg is not '':
+				sarg = arg.split(' = ')
+				arguments['${}'.format(sarg[0])] = ' = '.join(sarg[1:])
 	if (len(command)==0) or (not (command[0] in interface) and not (' '.join(command) in database['commands'])):
 		print '{} is an invalid command.'.format(' '.join(command))
 		print 'A command must start with: '
@@ -134,18 +155,20 @@ if len(sys.argv)>1:
 	else:
 		for word in command:
 			if word[0] == '$':
-				arguments[word] = raw_input('{}='.format(word))
+				if word not in arguments:
+					arguments[word] = raw_input('{}='.format(word))
 			elif word[0] == '{' and word[len(word)-1] == '}':
-				print '{} :'.format(word)
-				tryRun = True
-				lines = []
-				while tryRun:
-					nextline = raw_input('')
-					if nextline is '':
-						tryRun = False
-					else:
-						lines.append(nextline)
-					arguments[word] = '{}'.format(';'.join(lines))
+				if word not in arguments:
+					print '{} :'.format(word)
+					tryRun = True
+					lines = []
+					while tryRun:
+						nextline = raw_input('')
+						if nextline is '':
+							tryRun = False
+						else:
+							lines.append(nextline)
+						arguments[word] = '{}'.format(';'.join(lines))
 		execute([command])
 	for f in database:
 		save(f, database[f])
@@ -156,6 +179,14 @@ else:
 	while run:
 		command = raw_input('>>>').split(' ')
 		arguments = {}
+		scommand = ' '.join(command).split(' %')
+		if len(scommand) > 1:
+			command = scommand[0].split(' ')
+			args = ' %'.join(scommand[1:]).split(' $')
+			for arg in args:
+				if arg is not '':
+					sarg = arg.split(' = ')
+					arguments['${}'.format(sarg[0])] = ' = '.join(sarg[1:])
 		if (len(command)==0) or (not (command[0] in interface) and not (' '.join(command) in database['commands'])):
 			print '{} is an invalid command.'.format(' '.join(command))
 			print 'A command must start with: '
@@ -168,16 +199,18 @@ else:
 		else:
 			for word in command:
 				if word[0] == '$':
-					arguments[word] = raw_input('{}='.format(word))
+					if word not in arguments:
+						arguments[word] = raw_input('{}='.format(word))
 				elif word[0] == '{' and word[len(word)-1] == '}':
-					print '{} :'.format(word)
-					tryRun = True
-					lines = []
-					while tryRun:
-						nextline = raw_input('')
-						if nextline is '':
-							tryRun = False
-						else:
-							lines.append(nextline)
-						arguments[word] = '{}'.format(';'.join(lines))
+					if word not in arguments:
+						print '{} :'.format(word)
+						tryRun = True
+						lines = []
+						while tryRun:
+							nextline = raw_input('')
+							if nextline is '':
+								tryRun = False
+							else:
+								lines.append(nextline)
+							arguments[word] = '{}'.format(';'.join(lines))
 			execute([command])
