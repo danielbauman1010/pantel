@@ -16,7 +16,7 @@ def load(filename):
 			rawl = ''.join(rawl.split('\n'))
 			l = rawl.split(': ')
 			if len(l)>1:
-				data[l[0]] = l[1]
+				data[l[0]] = ': '.join(l[1:])
 		return data
 	else:
 		return {}

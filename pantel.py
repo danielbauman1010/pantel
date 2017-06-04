@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+
 if not os.path.isdir('data'):
 	os.mkdir('data')
 if not os.path.isdir('data/libraries'):
@@ -34,6 +35,9 @@ def configure():
 database = {}
 database['user_preferences'] = load('user_preferences')
 database['commands'] = load('commands')
+for f in os.listdir('.data/'):
+	if f[(len(f)-5):]=='.data':
+		database[f[:(len(f)-5)]] = load(f[:len(f)-5])
 configure()
 interface = ['add','delete','create','show','quit','exit', 'remove','what\'s', 'execute', 'run', 'read', 'save']
 
@@ -103,7 +107,7 @@ def execute(commands):
 						if command[2] == 'database':
 							database[' '.join(command[3:])] = {}
 						elif ' '.join(' '.join(command).split(':')[0].split(' ')[2:]) in database:
-							database[' '.join(' '.join(command).split(':')[0].split(' ')[2:])][' '.join(command).split(':')[1].split('=')[0]] = ' '.join(command).split(':')[1].split('=')[1]
+							database[' '.join(' '.join(command).split(':')[0].split(' ')[2:])][':'.join(' '.join(command).split(':')[1:]).split('=')[0]] = '='.join(':'.join(' '.join(command).split(':')[1:]).split('=')[1:])
 		elif command[0] == 'show' or command[0] == 'what\'s' or command[0] == 'read':
 			if len(command)<2:
 				print 'show what?'
@@ -123,6 +127,18 @@ def execute(commands):
 					configure()
 				elif command[1] == 'command':
 					database['commands'].pop(' '.join(command[2:]))
+				elif command[1] == 'from':
+					if len(command)<3:
+						print 'delete what to where?'
+					else:
+						if command[2]=='database':
+							if ' '.join(command[3:]) in database:
+								name_of_list = ' '.join(command[3:])
+								database.pop(name_of_list)
+								deleting_command = ['rm','-rf','.data/{}.data'.format(name_of_list)]
+								runcmd(deleting_command)
+						elif ' '.join(command[2:]).split(':')[0] in database:
+							database[' '.join(command[2:]).split(':')[0]].pop(':'.join(' '.join(command[2:]).split(':')[1:]))
 				else:
 					print '{} does not exist in my database.'.format(command[1])
 		elif command[0] == 'run' or command[0] == 'execute':
@@ -198,19 +214,20 @@ else:
 			run = 0
 		else:
 			for word in command:
-				if word[0] == '$':
-					if word not in arguments:
-						arguments[word] = raw_input('{}='.format(word))
-				elif word[0] == '{' and word[len(word)-1] == '}':
-					if word not in arguments:
-						print '{} :'.format(word)
-						tryRun = True
-						lines = []
-						while tryRun:
-							nextline = raw_input('')
-							if nextline is '':
-								tryRun = False
-							else:
-								lines.append(nextline)
-							arguments[word] = '{}'.format(';'.join(lines))
+				if len(word)>0:
+					if word[0] == '$':
+						if word not in arguments:
+							arguments[word] = raw_input('{}='.format(word))
+					elif word[0] == '{' and word[len(word)-1] == '}':
+						if word not in arguments:
+							print '{} :'.format(word)
+							tryRun = True
+							lines = []
+							while tryRun:
+								nextline = raw_input('')
+								if nextline is '':
+									tryRun = False
+								else:
+									lines.append(nextline)
+								arguments[word] = '{}'.format(';'.join(lines))
 			execute([command])
