@@ -35,7 +35,7 @@ def configure():
 database = {}
 database['user_preferences'] = load('user_preferences')
 database['commands'] = load('commands')
-for f in os.listdir('.data/'):
+for f in os.listdir('data/'):
 	if f[(len(f)-5):]=='.data':
 		database[f[:(len(f)-5)]] = load(f[:len(f)-5])
 configure()
