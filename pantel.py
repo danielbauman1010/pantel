@@ -135,7 +135,7 @@ def execute(commands):
 							if ' '.join(command[3:]) in database:
 								name_of_list = ' '.join(command[3:])
 								database.pop(name_of_list)
-								deleting_command = ['rm','-rf','.data/{}.data'.format(name_of_list)]
+								deleting_command = ['rm','-rf','data/{}.data'.format(name_of_list)]
 								runcmd(deleting_command)
 						elif ' '.join(command[2:]).split(':')[0] in database:
 							database[' '.join(command[2:]).split(':')[0]].pop(':'.join(' '.join(command[2:]).split(':')[1:]))
