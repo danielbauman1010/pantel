@@ -1,9 +1,4 @@
-import os
-import sys
-import socket
-import random
-import string
-import subprocess
+import os, sys, socket, random, string, subprocess
 
 def save(filename, data):
 	fw = open(filename,'w')
@@ -55,7 +50,7 @@ if sys.argv[1] == "install":
 	currcommands['delete connect $setup'] = 'run python data/libraries/connectLib.py delete $setup'
 	currcommands['connect listen active $setup'] = 'run python data/libraries/connectLib.py listen -a $setup'
 	currcommands['connect listen passive $setup'] = 'run python data/libraries/connectLib.py listen -p $setup'
-	currcommands['send $setup $key $command'] = 'run python data/libraries/connectLib.py send $setup $key $command'	
+	currcommands['send $setup $key $command'] = 'run python data/libraries/connectLib.py send $setup $key $command'
 	currcommands['connect to $setup $key'] = 'run python data/libraries/connectLib.py connect $setup $key'
 	save('../commands.data',currcommands)
 else:
