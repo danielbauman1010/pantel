@@ -1,4 +1,4 @@
-# The imports:
+# Imports:
 
 import os, subprocess, sys, platform
 
@@ -8,18 +8,27 @@ import os, subprocess, sys, platform
 
 # Pre-defined-values: 
 
+#	paths and dirs:
 
+keypaths = {}
+keydirs = {}
 
-#		paths:
+keydirs['datadir'] = 'data'
+keydirs['personaldir'] = os.path.join(datadir,'personal')
+keydirs['librariesdir'] = os.path.join(datadir,'libraries')
+keypaths['user_preferences_path'] = os.path.join(personaldir,'user_preferences.settings')
+keypaths['custom_commands_path'] = os.path.join(personaldir,'custom.commands')
+ 
 
-datadir = 'data'
-personaldir = 'personal'
-user_preferences_filename = 'user_preferences.settings'
-custom_commands_filename = 'custom.commands'
-librariesdir = 'libraries' 
+#-----------------------------------------------------------------------------------------------------
+
+#	dictionaries:
 
 allcommands = {}
 database = {}
+
+
+#=====================================================================================================
 
 
 # Accessing filesystem helper-functions:
@@ -47,77 +56,128 @@ def load(filename):	#reads dict from file
 		return {}
 
 
-#check for startup/non-existing folders:
-
-#check for data directory
-if not os.path.isdir(datadir):
-	os.mkdir(datadir)
-
-#check for libraries directory:
-if not os.path.isdir('{}/{}'.format(datadir,librariesdir)):
-	os.mkdir('{}/{}'.format(datadir,librariesdir))
-
-#check for personal directory:
-
-if not os.path.isdir('{}/{}'.format(datadir,personaldir)):
-	os.mkdir('{}/{}'.format(datadir,personaldir))
+#=====================================================================================================
 
 
-#check for user_preferences file
-if not os.path.isfile('{}/{}/{}'.formayt(datadir,personaldir,user_preferences_filename)):
-	osdata = {}
-	osdata['os-type'] = platform.system()
-	osdata['os-version'] = platform.release()
-	save('{}/{}/{}'.format(datadir,personaldir,user_preferences_filename),osdata)
+# Check for missing environment
 
-#check for custom_commands file
-if not os.path.isfile('{}/{}/{}'.format(datadir,personaldir,custom_commands_filename)):
-	custom_commands_data = {}
-	save('{}/{}/{}'.format(datadir,personaldir,custom_commands_filename),custom_commands_data)
+def check_config():
+	for path in keypaths:
+		if not os.path.exists(keypaths[path]):
+			save(keypaths[path],{})
+	for dir in keydirs:
+		if not os.path.exists(keydirs[dir]):
+			os.mkdir(keydirs[dir])
+	for c in database:
+		if c not in os.listdir(datadir):
+			os.mkdir(c)
+		for f in database[c]: 
+			fpath = os.path.join(datadir,c,f)
+			if not f in os.listdir(fpath):
+				save(fpath,database[c][f])
 
-#data control:
+
+#=====================================================================================================
 
 
-#checks and returns:
-def checkc
+# Data control:
 
-#adding categories
+#c=category, d=dict, k=key, e=entry
+
+#	categories:
+
 def addc(c):
 	database[c] = {}
-	cpath = '{}/{}'.format(datadir,c)
+	cpath = os.path.join(datadir,c)
 	if not os.path.isdir(cpath):
 		os.mkdir(path)
+	return 1
 
-#adding dictionaries (files)
+def getc(c):
+	if not c in database:
+		return -2
+	return database[c]
+
+def delc(c):
+	database.pop(c)
+	os.rmdir(os.path.join(datadir,c))
+
+#-----------------------------------------------------------------------------------------------------
+
+#	dictionaries (files):
+
 def addd(c,d):
+	if not c in database:
+		return -2
 	database[c][d] = {}
-	
+	fpath = os.path.join(datadir,c,d)	
+	if not os.path.exists(fpath):
+		save(fpath, database[c][d])
+	return 1
 
+def getd(c,d):
+	if not c in database:
+		return -2
+	if not d in database[c]:
+		return -1
+	return database[c][d]
 
-def add_entry(c,d,k,e):	#c=category, d=dict, k=key, e=entry
+def deld(c,d):
+	if not c in database:
+		return -2
+	database[c].pop(d)
+	os.remove(os.path.join(datadir,c,d))
+	return 1	
+
+#-----------------------------------------------------------------------------------------------------
+
+#	entries:
+
+def adde(c,d,k,e):
+	if not c in database:
+		return -2
+	if not d in database[c]:
+		return -1
 	database[c][d][k]=e
-	save('{}/{}/{}.data'.format(datadir,c,d),database[c][d])
+	save(os.path.join(datadir,c,d),database[c][d])
+	return 1
 
-def get_entry(c,d,k):
+def gete(c,d,k):
 	if not c in database:
 		return -2
 	if not d in database[c]:
 		return -1
 	if not k in database[c][d]:
 		return 0
-	return database[d][k]
+	return database[c][d][k]
+
+def dele(c,d,k):
+	if not c in database:
+		return -2
+	if not d in database[c]:
+		return -1
+	if not k in database[c][d]:
+		return 0
+	database[c][d].pop(k)
+	return 1
+
+#=====================================================================================================
 
 
-#configuration for new user:
+# Configuration for new user:
+
 
 def configure():
-	if 'name' not in user_preferences:
+	if 'name' not in database['personal']['user_preferences.settings']:
 		name = raw_input('How should I call you?\t')
 		print 'OK, welcome {}'.format(name)
-		add_data('personal','user_preferences.settings','name',name)
+		adde('personal','user_preferences.settings','name',name)
 
 
-#command-line
+#=====================================================================================================
+
+
+# Command-line:
 
 def runcmd(cmd):
 	return subprocess.check_output(cmd)
@@ -128,15 +188,23 @@ def runpython(scr):
 		cmd.append(part)
 	return subprocess.check_output(cmd)
 
-#loading database:
 
-#load all files:
+#=====================================================================================================
+
+
+# Loading database:
+
+
+#	load all files:
 
 for dir in os.listdir(datadir):
 	database[dir] = {}
 	for filename in os.listdir(os.path.join(datadir,dir)):
 		database[dir][filename] = load(os.path.join(datadir,dir,filename))
-#load commands separately
+
+#-----------------------------------------------------------------------------------------------------
+
+#	load commands separately
 
 for categoryname, category in database.iteritems():
 	for listname, list in category.iteritems():
@@ -145,12 +213,18 @@ for categoryname, category in database.iteritems():
 				allcommands[command] = translation
 
 
-#interface definition:
+#=====================================================================================================
+
+
+# Interface definition:
 
 interface = ['add','delete','create','show','quit','exit', 'remove','what\'s', 'execute', 'run', 'read', 'save']
 
 
-#custom printing:
+#=====================================================================================================
+
+
+# Custom printing:
 
 def list_print(d):
 	for i in d:
@@ -161,7 +235,14 @@ def category_print(c):
 	for listname,list in database[c].iteritems():
 		print '\t{}'.format(listname)
 
-#set arguments and process custom commands:
+
+#=====================================================================================================
+
+
+# Handle commands: (main)
+
+
+# 	set arguments and process custom commands:
 	
 arguments = {}
 
@@ -187,8 +268,13 @@ def process_custom_command(command):
 		commands.append(scmd)
 	return commands
 
+#-----------------------------------------------------------------------------------------------------
+
+#	execute commands:
+
 def execute(commands):
 	for command in commands:
+		#check for pre-defined commands
 		scommand = ' '.join(command).split(' %')
 		if len(scommand) > 1:
 			command = scommand[0].split(' ')
@@ -197,8 +283,11 @@ def execute(commands):
 				if arg is not '':
 					sarg = arg.split(' = ')
 					arguments['${}'.format(sarg[0])] = ' = '.join(sarg[1:])
+		#check if in commands:
 		if ' '.join(command) in allcommands:
 			execute(process_custom_command(' '.join(command)))
+		#otherwise - check if database related:
+		#adding:
 		elif command[0] == 'add' or command[0] == 'create' or command[0] == 'save':
 			if len(command)<2:
 				print 'add what?'
@@ -214,17 +303,29 @@ def execute(commands):
 							tryrun = 0
 						else:
 							commandsList.append(anotherCommand)
-					add_data(personaldir,custom_commands_filename,newCommand, ';'.join(commandsList))
-					allcommands[newCommand] = ';'.join(commandsList)
+					commandstr = ';'.join(commandsList)
+					adde(personaldir,'custom.commands',newCommand, commandstr)
+					allcommands[newCommand] = commandstr
 				elif command[1] == 'to':
 					if len(command)<4:
 						print 'save what to where?'
 					else:
+						potdict = ' '.join(command[3:]) #potentially dict
+						potargsparts = ' '.join(command[2:]).split(':')
+						potdname = potargsparts[0]
+						potdparts = ':'.join(potargsparts[1:]).split('=')
+						potdkey = potdparts[0]
+						potde = '='.join(potdparts[1:])
 						if command[2] == 'personal':
-							database['personal'][' '.join(command[3:])] = {}
-							save('{}/{}/{}'.format(datadir,personaldir,' '.join(command[3:])), {})
-						elif ' '.join(' '.join(command).split(':')[0].split(' ')[2:]) in database['personal']:
-							add_data('personal',' '.join(' '.join(command).split(':')[0].split(' ')[2:]), ':'.join(' '.join(command).split(':')[1:]).split('=')[0], '='.join(':'.join(' '.join(command).split(':')[1:]).split('=')[1:])) 
+							if addd('personal',potdict) is not 1:
+								print 'category error -  personal doesn\'t exist!'
+						elif potdname in database['personal']:
+							r = adde('personal',potdname, potdkey,potde)
+							if r == -2:
+								print 'personal doesn\'t exist!'
+							if r == -1:
+								print '{} doesn\'t exist!'.format(potdname)
+								  
 		elif command[0] == 'show' or command[0] == 'what\'s' or command[0] == 'read':
 			if len(command)<2:
 				print 'show what?'
@@ -244,32 +345,31 @@ def execute(commands):
 			if len(command)<2:
 				print 'delete what?'
 			else:
-				if ' '.join(command[1:]) in database:
-					database[' '.join(command[1:])] = {}
-					runcmd(['rm','-rf','{}/{}'.format(datadir,' '.join(command[1:]))])
-					if ' '.join(command[1:]) == personaldir:
-						runcmd(['mkdir','{}/{}'.format(datadir,personaldir)])						
+				potc = ' '.join(command[1:]) 
+				if potc in database:
+					delc(potc)
+					if potc == 'personal':
+						os.mkdir(personaldir)
 						configure()
-					elif ' '.join(command[1]) == librariesdir:
-						runcmd(['mkdir','{}/{}'.format(datadir,librariesdir)])
-				elif command[1] == 'from':
-					if len(command)<3:
+					elif potc == 'libraries':
+						os.mkdir(librariesdir)
+				else:
+					if len(command)<2:
 						print 'delete what to where?'
 					else:
-						if ' '.join(command[2:]).split(':')[0] in database and ' '.join(command[2:]).split(':')[1] in database[' '.join(command[2:]).split(':')[0]]:
-							database[' '.join(command[2:]).split(':')[0]].pop(' '.join(command[2:]).split(':')[1])
-							deleting_command = ['rm','-rf','{}/{}/{}'.format(datadir,' '.join(command[2:]).split(':')[0],' '.join(command[2:]).split(':')[1])]
-							runcmd(deleting_command)
-				else:
-					if command[1] == 'entry':
-						parts = ' '.join(command[2:]).split(':')
-						c = parts[0]
-						d = parts[1]
-						k = parts[2]
-						database[c][d].pop(k)
-						save('{}/{}/{}'.format(datadir,c,d))
-					else:					
-						print '{} does not exist in my database.'.format(' '.join(command[1:]))
+						potargs = ' '.join(command[1:]).split(':')
+						potc = potargs[0]
+						potd = potargs[1]
+						poteparts = potparts[1].split('=')
+						potdname = poteparts[0]
+						potk = poteparts[1]
+						if potc in database and potd in database[potc]:
+							deld(potc,potd)
+				
+						if potc in database and potdname in database[pote]:
+							dele(potc,potdname,potk)
+						else:					
+							print '{} does not exist in my database.'.format(' '.join(command[1:]))
 		elif command[0] == 'run' or command[0] == 'execute':
 			if len(command)<2:
 				print runcmd(raw_input('Execute what?\t').split(' '))
@@ -315,9 +415,6 @@ if len(sys.argv)>1:
 							lines.append(nextline)
 						arguments[word] = '{}'.format(';'.join(lines))
 		execute([command])
-	for c in database:
-		for d in database[c]:
-			save('{}/{}/{}'.format(datadir,c,d),database[c][d])
 else:
 	run = 1
 	print "Welcome to PANTEL - a Python based virtual assistant"
